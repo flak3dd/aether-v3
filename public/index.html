@@ -1,0 +1,323 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Aether v3 — Build Studio</title>
+  <!-- Google Fonts -->
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=JetBrains+Mono:wght@400;500;700&family=Outfit:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+  <!-- CSS Stylesheet -->
+  <link rel="stylesheet" href="style.css">
+</head>
+<body>
+  <div class="app-container">
+    
+    <!-- Sidebar Controls -->
+    <aside class="sidebar">
+      <div class="brand">
+        <span class="brand-icon">⚡</span>
+        <h1>Aether v3</h1>
+      </div>
+      
+      <!-- New Build Launcher -->
+      <section class="launcher-card">
+        <h3>Initiate Build</h3>
+        <div class="input-group">
+          <label for="goal-input">Software Goal</label>
+          <textarea id="goal-input" placeholder="e.g., Build a simple Node.js CLI calculator with Vitest checks"></textarea>
+        </div>
+        <button id="launch-btn" class="glow-button">Launch Foreman</button>
+      </section>
+
+      <!-- Configuration Settings Button -->
+      <button id="config-btn" class="secondary-btn" style="width: 100%; padding: 12px; font-weight: 600; text-transform: uppercase; letter-spacing: 0.5px;">⚙ Configure Settings</button>
+
+      <!-- Past Builds Section -->
+      <section class="sidebar-list-section">
+        <h3>Build History</h3>
+        <div id="builds-list" class="sidebar-list">
+          <p class="list-empty">No build history found.</p>
+        </div>
+      </section>
+
+      <!-- Distilled Skills Section -->
+      <section class="sidebar-list-section">
+        <h3>Distilled Skills</h3>
+        <div id="skills-list" class="sidebar-list">
+          <p class="list-empty">No skills distilled yet.</p>
+        </div>
+      </section>
+    </aside>
+
+    <!-- Main Content Area -->
+    <main class="main-content">
+      
+      <!-- Top Workspace Info Header -->
+      <header class="main-header">
+        <div class="header-left">
+          <h2>Active Build Studio</h2>
+          <p id="active-goal-text">No active build running. Enter a goal in the sidebar to start.</p>
+        </div>
+        <div class="header-right">
+          <span id="status-badge" class="badge idle">Idle</span>
+        </div>
+      </header>
+
+      <!-- Workspace Path Sub-bar -->
+      <div id="workspace-bar" class="workspace-bar" style="display: none;">
+        <span class="folder-icon">📁</span>
+        <span id="workspace-path">/workspace</span>
+      </div>
+
+      <!-- Real-time Dashboard Cards -->
+      <section class="metrics-grid">
+        <div class="metric-card">
+          <div class="metric-label">Current Turn</div>
+          <div id="metric-turn" class="metric-value">-</div>
+        </div>
+        <div class="metric-card">
+          <div class="metric-label">DoD Burn-Down</div>
+          <div id="metric-burndown" class="metric-value">-</div>
+        </div>
+        <div class="metric-card">
+          <div class="metric-label">Escalation Rung</div>
+          <div id="metric-rung" class="metric-value">-</div>
+          <div id="metric-rung-strategy" class="metric-subtext">None</div>
+        </div>
+        <div class="metric-card">
+          <div class="metric-label">Active Worker Leases</div>
+          <div id="metric-workers" class="metric-value">-</div>
+        </div>
+      </section>
+
+      <!-- Tab Navigation -->
+      <nav class="tab-nav">
+        <button class="tab-btn active" data-tab="console">Live Console</button>
+        <button class="tab-btn" data-tab="dod">DoD & Burn-down</button>
+        <button class="tab-btn" data-tab="ledger">Project Ledger</button>
+        <button class="tab-btn" data-tab="git">Git & Leases</button>
+      </nav>
+
+      <!-- Tab Panels -->
+      <section class="tab-panels">
+        
+        <!-- PANEL 1: Live Console & Event Logs -->
+        <div class="tab-panel active" id="panel-console">
+          <div class="console-header">
+            <h3>Engine Live Event Stream</h3>
+            <button id="clear-console-btn" class="secondary-btn">Clear Log</button>
+          </div>
+          <div id="console-log" class="console-body">
+            <div class="log-entry system-msg">Awaiting build launch to stream events...</div>
+          </div>
+        </div>
+
+        <!-- PANEL 2: DoD Checklist & SVG Burndown Chart -->
+        <div class="tab-panel" id="panel-dod">
+          <div class="dod-layout">
+            <div class="dod-checks-card">
+              <h3>Definition of Done</h3>
+              <ul id="dod-checklist" class="dod-list">
+                <li class="list-empty">No checks committed yet.</li>
+              </ul>
+            </div>
+            <div class="dod-chart-card">
+              <h3>Burn-down Progress Chart</h3>
+              <div id="chart-wrapper" class="chart-wrapper">
+                <svg id="burndown-svg" width="100%" height="100%" viewBox="0 0 600 300" preserveAspectRatio="none">
+                  <defs>
+                    <linearGradient id="chart-glow" x1="0" y1="0" x2="0" y2="1">
+                      <stop offset="0%" stop-color="rgba(0, 242, 254, 0.4)"/>
+                      <stop offset="100%" stop-color="rgba(0, 242, 254, 0.0)"/>
+                    </linearGradient>
+                  </defs>
+                  <!-- Background grid -->
+                  <g class="grid-lines"></g>
+                  <!-- Area path under the line -->
+                  <path class="chart-area" d=""></path>
+                  <!-- The burn-down line -->
+                  <path class="chart-line" d=""></path>
+                  <!-- Points on the line -->
+                  <g class="chart-points"></g>
+                </svg>
+              </div>
+            </div>
+          </div>
+        </div>
+
+        <!-- PANEL 3: Project Ledger (Constraints, Decisions, Failed Approaches) -->
+        <div class="tab-panel" id="panel-ledger">
+          <div class="ledger-grid">
+            <div class="ledger-card decisions-card">
+              <h3>Decisions & Rationales</h3>
+              <ul id="ledger-decisions" class="ledger-list">
+                <li class="list-empty">No decisions recorded.</li>
+              </ul>
+            </div>
+            <div class="ledger-card constraints-card">
+              <h3>Discovered Constraints</h3>
+              <ul id="ledger-constraints" class="ledger-list">
+                <li class="list-empty">No constraints discovered.</li>
+              </ul>
+            </div>
+            <div class="ledger-card failures-card">
+              <h3>Failed Approaches (Thrash Vaccine)</h3>
+              <ul id="ledger-failures" class="ledger-list">
+                <li class="list-empty">No failed approaches recorded.</li>
+              </ul>
+            </div>
+            <div class="ledger-card questions-card">
+              <h3>Open Questions</h3>
+              <ul id="ledger-questions" class="ledger-list">
+                <li class="list-empty">No open questions.</li>
+              </ul>
+            </div>
+          </div>
+        </div>
+
+        <!-- PANEL 4: Git Timeline & Subagent Leases -->
+        <div class="tab-panel" id="panel-git">
+          <div class="git-leases-layout">
+            <div class="git-card">
+              <h3>Git Commits Timeline</h3>
+              <div id="git-timeline" class="timeline">
+                <p class="list-empty">No commits made yet.</p>
+              </div>
+            </div>
+            <div class="leases-card">
+              <h3>Active Worker Leases</h3>
+              <div id="worker-leases" class="leases-list">
+                <p class="list-empty">No active worker subagents.</p>
+              </div>
+            </div>
+          </div>
+        </div>
+
+      </section>
+    </main>
+  </div>
+
+  <!-- Human Q&A Modal Dialog -->
+  <div id="human-modal" class="modal-overlay">
+    <div class="modal-card">
+      <div class="modal-header">
+        <span class="modal-icon">❓</span>
+        <h2>Human Escalation Required</h2>
+      </div>
+      <div class="modal-body">
+        <p id="modal-question-text">Loading question...</p>
+        <div id="modal-options-container" class="options-grid"></div>
+        <div id="modal-custom-input-container" class="custom-input-group">
+          <input type="text" id="modal-text-input" placeholder="Type custom answer here...">
+          <button id="modal-submit-text-btn" class="glow-button">Submit Answer</button>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- Configuration Modal Dialog -->
+  <div id="config-modal" class="modal-overlay">
+    <div class="modal-card" style="width: 550px;">
+      <div class="modal-header">
+        <span class="modal-icon">⚙</span>
+        <h2>System Settings & AI Models</h2>
+        <button class="close-modal-btn" id="close-config-btn" style="margin-left: auto; font-size: 24px; background:none; border:none; color:var(--color-text-muted); cursor:pointer;">&times;</button>
+      </div>
+      <div class="modal-body">
+        <form id="config-form" onsubmit="event.preventDefault();">
+          
+          <div class="input-group" style="margin-bottom: 14px;">
+            <label for="config-provider">AI Provider</label>
+            <select id="config-provider" style="background: rgba(0,0,0,0.3); border: 1px solid var(--color-border); border-radius: var(--radius-md); padding: 10px; color: #fff; outline: none; font-family: var(--font-main);">
+              <option value="anthropic">Anthropic API Key</option>
+              <option value="vertex">Google Cloud Vertex AI</option>
+              <option value="gemini">Google Gemini API</option>
+            </select>
+          </div>
+
+          <!-- Anthropic Section -->
+          <div id="config-anthropic-section" class="input-group" style="margin-bottom: 14px;">
+            <label for="config-api-key">Anthropic API Key</label>
+            <input type="password" id="config-api-key" placeholder="sk-ant-..." style="background: rgba(0,0,0,0.3); border: 1px solid var(--color-border); border-radius: var(--radius-md); padding: 10px; color: #fff; outline: none; font-family: var(--font-main);">
+          </div>
+
+          <!-- Gemini Section -->
+          <div id="config-gemini-section" class="input-group" style="display: none; margin-bottom: 14px;">
+            <label for="config-gemini-api-key">Gemini API Key</label>
+            <input type="password" id="config-gemini-api-key" placeholder="AIzaSy..." style="background: rgba(0,0,0,0.3); border: 1px solid var(--color-border); border-radius: var(--radius-md); padding: 10px; color: #fff; outline: none; font-family: var(--font-main);">
+          </div>
+
+          <!-- Vertex Section -->
+          <div id="config-vertex-section" style="display: none; margin-bottom: 14px;">
+            <div class="input-group" style="margin-bottom: 14px;">
+              <label for="config-vertex-project">GCP Project ID</label>
+              <input type="text" id="config-vertex-project" placeholder="my-gcp-project-123" style="background: rgba(0,0,0,0.3); border: 1px solid var(--color-border); border-radius: var(--radius-md); padding: 10px; color: #fff; outline: none; width: 100%; font-family: var(--font-main);">
+            </div>
+            <div class="input-group">
+              <label for="config-vertex-region">GCP Region</label>
+              <input type="text" id="config-vertex-region" placeholder="us-central1" style="background: rgba(0,0,0,0.3); border: 1px solid var(--color-border); border-radius: var(--radius-md); padding: 10px; color: #fff; outline: none; width: 100%; font-family: var(--font-main);">
+            </div>
+          </div>
+
+          <!-- Models Section -->
+          <h3 style="font-size: 13px; text-transform: uppercase; color: var(--color-text-muted); margin: 20px 0 10px 0; border-bottom: 1px solid var(--color-border); padding-bottom: 6px;">AI Models Allocation</h3>
+          
+          <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 12px; margin-bottom: 20px;">
+            <div class="input-group">
+              <label for="config-model-foreman">Foreman Brain</label>
+              <input type="text" id="config-model-foreman" placeholder="claude-sonnet-4-6" style="background: rgba(0,0,0,0.3); border: 1px solid var(--color-border); border-radius: var(--radius-md); padding: 10px; color: #fff; outline: none; font-family: var(--font-main);">
+            </div>
+            <div class="input-group">
+              <label for="config-model-worker">Worker Builders</label>
+              <input type="text" id="config-model-worker" placeholder="claude-sonnet-4-6" style="background: rgba(0,0,0,0.3); border: 1px solid var(--color-border); border-radius: var(--radius-md); padding: 10px; color: #fff; outline: none; font-family: var(--font-main);">
+            </div>
+          </div>
+          
+          <div class="input-group" style="margin-bottom: 24px;">
+            <label for="config-model-critic">Adversarial Critic</label>
+            <input type="text" id="config-model-critic" placeholder="claude-sonnet-4-6" style="background: rgba(0,0,0,0.3); border: 1px solid var(--color-border); border-radius: var(--radius-md); padding: 10px; color: #fff; outline: none; font-family: var(--font-main);">
+          </div>
+
+          <button id="save-config-btn" class="glow-button" style="width: 100%;">Save Configuration Settings</button>
+        </form>
+      </div>
+    </div>
+  </div>
+
+  <!-- Past Build Viewer Modal -->
+  <div id="build-modal" class="modal-overlay">
+    <div class="build-modal-card">
+      <div class="build-modal-header">
+        <h2 id="build-modal-title">Build Details</h2>
+        <button class="close-modal-btn">&times;</button>
+      </div>
+      <div class="build-modal-body">
+        <div class="build-modal-grid">
+          <div class="dod-checks-card">
+            <h3>DoD Verdict</h3>
+            <ul id="build-modal-dod" class="dod-list"></ul>
+          </div>
+          <div class="git-card">
+            <h3>Commit Log</h3>
+            <pre id="build-modal-git" class="git-log-view"></pre>
+          </div>
+        </div>
+        <div class="ledger-grid" style="margin-top: 20px;">
+          <div class="ledger-card">
+            <h3>Decisions</h3>
+            <ul id="build-modal-decisions" class="ledger-list"></ul>
+          </div>
+          <div class="ledger-card">
+            <h3>Failed Approaches</h3>
+            <ul id="build-modal-failures" class="ledger-list"></ul>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <script src="app.js"></script>
+</body>
+</html>
